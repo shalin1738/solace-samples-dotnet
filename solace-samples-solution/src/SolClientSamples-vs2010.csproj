@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{22EBBF0E-B463-423A-BB86-0DD1E453688A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SolaceSystems.Solclient.Examples.Messaging</RootNamespace>
+    <AssemblyName>SolClientSamples</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <Choose>
+	<When Condition="Exists('..\..\lib\SolaceSystems.Solclient.Messaging.dll')">
+	  <ItemGroup>
+        <Reference Include="SolaceSystems.Solclient.Messaging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bee6bf04bc98427b, processorArchitecture=MSIL">
+          <SpecificVersion>False</SpecificVersion>
+		  <HintPath>..\..\lib\SolaceSystems.Solclient.Messaging.dll</HintPath>
+		</Reference>
+	  </ItemGroup>
+	</When>
+	<Otherwise>
+	  <ItemGroup>
+        <Reference Include="SolaceSystems.Solclient.Messaging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bee6bf04bc98427b, processorArchitecture=MSIL">
+          <SpecificVersion>False</SpecificVersion>
+		  <HintPath>..\..\lib\$(ConfigurationName)\SolaceSystems.Solclient.Messaging.dll</HintPath>
+		</Reference>
+	  </ItemGroup>
+	</Otherwise>
+  </Choose>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActiveFlowIndication.cs" />
+    <Compile Include="AsyncCacheRequest.cs" />
+    <Compile Include="AdPubAck.cs" />
+    <Compile Include="RRGuaranteedReplier.cs" />
+    <Compile Include="RRGuaranteedRequester.cs" />
+    <Compile Include="Replication.cs" />
+    <Compile Include="NoLocalPubSub.cs" />
+    <Compile Include="RRDirectReplier.cs" />
+    <Compile Include="RRDirectRequester.cs" />
+    <Compile Include="SDTPubSubMsgDep.cs" />
+    <Compile Include="SDTPubSubMsgIndep.cs" />
+    <Compile Include="secureSession.cs" />
+    <Compile Include="SempGetOverMB.cs" />
+    <Compile Include="DirectPubSub.cs" />
+    <Compile Include="RedirectLogs.cs" />
+    <Compile Include="EventMonitor.cs" />
+    <Compile Include="SubscribeOnBehalfOfClient.cs" />
+    <Compile Include="TopicDispatch.cs" />
+    <Compile Include="TopicToQueueMapping.cs" />
+    <Compile Include="QueueProvisionAndBrowse.cs" />
+    <Compile Include="MessageSelectorsOnQueue.cs" />
+    <Compile Include="MessageTTLAndDeadMessageQueue.cs" />
+    <Compile Include="SempHttpSetRequest.cs" />
+    <Compile Include="SyncCacheRequest.cs" />
+    <Compile Include="SempPagingRequests.cs" />
+    <Compile Include="DTOPubSub.cs" />
+    <Compile Include="SimpleFlowToTopic.cs" />
+    <Compile Include="SimpleFlowToQueue.cs" />
+    <Compile Include="Transactions.cs" />
+    <Compile Include="utils\ArgParser.cs" />
+    <Compile Include="utils\CacheSessionConfiguration.cs" />
+    <Compile Include="utils\SessionConfiguration.cs" />
+    <Compile Include="utils\HighResolutionCounter.cs" />
+    <Compile Include="utils\ISampleApp.cs" />
+    <Compile Include="utils\SampleApp.cs" />
+    <Compile Include="utils\SampleUtils.cs" />
+    <Compile Include="SolClientSamples.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y "$(SolutionDir)"..\lib\$(ConfigurationName)\libsolclient.dll "$(TargetDir)"
+xcopy /Y "$(SolutionDir)"..\lib\libsolclient.dll "$(TargetDir)"
+xcopy /Y "$(SolutionDir)"..\lib\3rdparty\32\ssleay32.dll "$(TargetDir)"
+xcopy /Y "$(SolutionDir)"..\lib\3rdparty\32\libeay32.dll "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

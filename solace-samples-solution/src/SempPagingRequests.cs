@@ -1,0 +1,261 @@
+#region Copyright & License
+//
+// Solace Systems Messaging API
+// Copyright 2008-2016 Solace Systems, Inc.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to use and
+// copy the Software, and to permit persons to whom the Software is furnished to
+// do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// UNLESS STATED ELSEWHERE BETWEEN YOU AND SOLACE SYSTEMS, INC., THE SOFTWARE IS
+// PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+// BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+// PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+// BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// http://www.SolaceSystems.com
+//
+//                * SempPagingRequests *
+// Demonstrates SEMP requests with paging over the Message Bus. 
+// 
+// The sample illustrates how to extract the more-cookie (used for paging) from 
+// a response to get more data by performing get next requests.
+//
+// Sample requirements:
+//  - A Solace appliance running SolOS-TR.
+//  - When running with SolOS-TR 5.3.1 and above, the client's message vpn must have semp-over-msgbus enabled.
+//  - The client's message vpn must have management-message-vpn enabled to send SEMP requests outside of its message vp
+#endregion
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using SolaceSystems.Solclient.Messaging;
+using SolaceSystems.Solclient.Messaging.SDT;
+using System.Xml;
+
+namespace SolaceSystems.Solclient.Examples.Messaging
+{
+    public class SempPagingRequests : SampleApp
+    {
+        // Using SEMP schema version 5.1.
+        private string SOLTR_VERSION = "5_1";
+        private int NUM_OF_ELEMENTS_PER_REQUEST = 5;
+
+        /// <summary>
+        /// Short description.
+        /// </summary>
+        /// <returns></returns>
+        public override string ShortDescription()
+        {
+            return "Sample using SEMP over the message bus";
+        }
+
+
+        /// <summary>
+        /// Command line arguments options
+        /// </summary>
+        /// <param name="extraOptionsForCommonArgs"></param>
+        /// <param name="sampleSpecificUsage"></param>
+        /// <returns></returns>
+        public override bool GetIsUsingCommonArgs(out string extraOptionsForCommonArgs, out string sampleSpecificUsage)
+        {
+            extraOptionsForCommonArgs = "Extra arguments for this sample:\n" +
+                   "\n\t [-v]  Print SEMP protocol messages on the console\n" +
+                    "\t[-sv SEMP_VERSION]  SEMP version in the SEMP request. Default: " + SOLTR_VERSION;
+                    
+            sampleSpecificUsage = null;
+            return true;
+        }
+
+        /// <summary>
+        /// The main function in the sample.
+        /// </summary>
+        /// <param name="args"></param>
+        public override void SampleCall(string[] args)
+        {
+            #region Parse Arguments
+            string routerHostname = null;
+            bool verbose = false;
+            ArgParser cmdLineParser = new ArgParser();
+            if (!cmdLineParser.Parse(args))
+            {
+                // Parse failed.
+                PrintUsage(INVALID_ARGUMENTS_ERROR);
+                return;
+            }
+            if (cmdLineParser.Config.ArgBag.ContainsKey("-v"))
+            {
+                verbose = true;
+            }
+            if (cmdLineParser.Config.ArgBag.ContainsKey("-sv"))
+            {
+                SOLTR_VERSION = cmdLineParser.Config.ArgBag["-sv"];
+            }
+            #endregion
+
+            #region Initialize properties from command line
+            // Initialize the properties.
+            ContextProperties contextProps = new ContextProperties();
+            SessionProperties sessionProps = SampleUtils.NewSessionPropertiesFromConfig(cmdLineParser.Config);
+            #endregion
+
+            // Define Context and Session.
+            IContext context = null;
+            ISession session = null;
+            try
+            {
+                InitContext(cmdLineParser.LogLevel);
+                Console.WriteLine("About to connect to appliance. \n[Ensure selected message-vpn is configured as the appliance's management message-vpn.]");
+		Console.WriteLine("[Ensure selected message-vpn has semp-over-msgbus enabled]");
+                Console.WriteLine("About to create the Context ...");
+                context = ContextFactory.Instance.CreateContext(contextProps, null);
+                Console.WriteLine("Context successfully created. ");
+
+                Console.WriteLine("About to create the Session ...");
+                session = context.CreateSession(sessionProps,
+                    SampleUtils.HandleMessageEvent,
+                    SampleUtils.HandleSessionEvent);
+                Console.WriteLine("Session successfully created.");
+
+                Console.WriteLine("About to connect the Session ...");
+
+                if (session.Connect() == ReturnCode.SOLCLIENT_OK)
+                {
+                    Console.WriteLine("Session successfully connected");
+                    Console.WriteLine(GetRouterInfo(session));
+                }
+
+                // The SEMP requestStr Topic is built using the appliance's host name.
+                // 
+                // The SEMP requestStr we perform asks to show all Queues, and return five
+                // results at a time. It can be easily adapted to perform any other type
+                // of SEMP show commands.
+
+                ICapability cap_routerName = session.GetCapability(CapabilityType.PEER_ROUTER_NAME);
+                if (cap_routerName.Value == null || cap_routerName.Value.Value.Equals(""))
+                {
+                    Console.WriteLine("Unable to load PEER_ROUTER_NAME. (Requires r4.6+ SolOS-TR appliance.)");
+                    return;
+                }
+                // PEER_ROUTER_NAME is an ISDTField of type string.
+                routerHostname = (string) cap_routerName.Value.Value;
+
+                string SEMP_TOPIC_STRING = string.Format("#SEMP/{0}/SHOW", routerHostname);
+                Console.WriteLine(string.Format("Loaded appliance hostname: '{0}', SEMP Topic: '{1}'", routerHostname, SEMP_TOPIC_STRING));
+			    ITopic SEMP_TOPIC = ContextFactory.Instance.CreateTopic(SEMP_TOPIC_STRING);
+			    string SEMP_SHOW_QUEUES = "<rpc semp-version=\"soltr/" + SOLTR_VERSION +
+                    "\"><show><queue><name>*</name><count/><num-elements>" +
+                    NUM_OF_ELEMENTS_PER_REQUEST + "</num-elements></queue></show></rpc>";
+			    string MORECOOKIE_START = "<more-cookie>";
+			    string MORECOOKIE_END = "</more-cookie>";
+
+			    // Perform requests in a loop. Each new requestStr uses the
+			    // more-cookie from the previous response.
+			    //
+			    string next_request = SEMP_SHOW_QUEUES;
+                while(next_request != null) {
+                    // Create the requestStr message.
+                    IMessage requestMsg = ContextFactory.Instance.CreateMessage();
+                    requestMsg.Destination = SEMP_TOPIC;
+                    requestMsg.BinaryAttachment = Encoding.UTF8.GetBytes(next_request);
+                    if (verbose)
+                    {
+                        Console.WriteLine("REQUEST: " + next_request); // triggered by -v
+                    }
+				    // Make the requestStr.
+                    IMessage replyMsg;
+                    ReturnCode rc = session.SendRequest(requestMsg, out replyMsg, 5000);
+                    if (rc == ReturnCode.SOLCLIENT_FAIL) 
+                    {
+                        Console.WriteLine("Failed to send a requestStr.");
+                        break;
+                    }
+                    byte[] binaryAttachment = null;
+                    if (replyMsg != null)
+                    {
+                        binaryAttachment = replyMsg.BinaryAttachment;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to receive a SEMP reply.");
+                        return;
+                    }
+				    if (binaryAttachment != null) {
+					    string replyStr = Encoding.UTF8.GetString(binaryAttachment);
+                        // Is this user allowed to make such SEMP requestStr?
+                        if (replyStr.IndexOf("permission-error") != -1)
+                        {
+                            Console.WriteLine("Permission error, aborting");
+                            Console.WriteLine("REPLY: " + replyStr);
+                            return;
+                        }
+                        if (verbose)
+                        {
+                            Console.WriteLine("REPLY: " + replyStr); // triggered by -v
+                        }
+                        XmlDocument replyDoc = new XmlDocument();
+                        replyDoc.LoadXml(replyStr);
+                        // Result
+                        XmlNode result = replyDoc.SelectSingleNode("//execute-result/@code");
+                        Console.WriteLine("Result: " + result.Value);
+                        if (!"ok".Equals(result.Value))
+                        {
+                            Console.WriteLine("Failure occured, aborting");
+                            break;
+                        }
+
+				        // List queues. Select text nodes under
+				        // <queues><queue><name>NAME</name></queue><queues> in the
+				        // response.
+                        XmlNodeList queues = replyDoc.SelectNodes("//show/queue/queues/queue/name");
+                        foreach(XmlNode node in queues) 
+                        {
+                            Console.WriteLine("Queue= " + node.InnerText);
+                        }
+				        // Check for more data to requestStr with more-cookie.
+				        int start_idx = replyStr.IndexOf(MORECOOKIE_START);
+				        if (start_idx >= 0) {
+					        // More data available.
+					        int end_idx = replyStr.IndexOf(MORECOOKIE_END);
+                            next_request = replyStr.Substring(start_idx + MORECOOKIE_START.Length, end_idx - (start_idx + MORECOOKIE_START.Length));
+					        Console.WriteLine("Found more-cookie...");
+				        } else {
+					        // Abort the loop; no more data.
+					        next_request = null;
+				        }
+				    } 
+                    else 
+                    {
+                        // Abort the loop.
+                        Console.WriteLine("Reply message did not contain SEMP reply");
+                        break;
+                    }
+			    } // End requestor loop.
+            }
+            catch (Exception ex)
+            {
+                PrintException(ex);
+            }
+            finally
+            {
+                if (session != null)
+                {
+                    session.Dispose();
+                }
+                if (context != null)
+                {
+                    context.Dispose();
+                }
+                // Must cleanup after. 
+                CleanupContext();
+            }
+        }
+    }
+}
