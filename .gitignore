@@ -9,3 +9,5 @@ docs/_site
 
 solace-samples-solution/bin/
 solace-samples-solution/obj/
+lib/*.*
+lib/*
