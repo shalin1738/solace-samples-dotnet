@@ -264,4 +264,4 @@ Finished.
 
 With that you now know how to successfully implement publish-subscribe message exchange pattern using Direct messages. 
 
-If you have any issues publishing and receiving a message, check the Solace community Q&A for answers to common issues seen.</div>
+If you have any issues publishing and receiving a message, check the Solace community Q&A for answers to common issues seen.	
