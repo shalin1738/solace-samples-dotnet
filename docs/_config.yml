@@ -1,10 +1,12 @@
 # Site settings
-title: Solace Samples .NET
+title: Solace Samples C#/.NET
 baseurl: "/solace-samples-dotnet" # the subpath of your site, e.g. /solace-samples-java
 repository: https://github.com/SolaceSamples/solace-samples-dotnet
 
 # Also see _includes/intro.html to customize the description which gets included in index.html.
 
+# Links
+docs-vmr-setup: http://docs.solace.com/Solace-VMR-Set-Up/Setting-Up-VMRs.htm
 
 #----------------------------------------------------
 # Generally don't modify items below this point

@@ -1,0 +1,2 @@
+C:\Users\FinishAllVictory\workspace\solace-samples-dotnet\solace-samples-solution\bin\Debug\solace-samples-dotnet.exe.config
+C:\Users\FinishAllVictory\workspace\solace-samples-dotnet\solace-samples-solution\obj\Debug\solace-samples-solution.csprojResolveAssemblyReference.cache
