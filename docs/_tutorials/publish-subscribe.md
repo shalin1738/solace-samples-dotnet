@@ -186,7 +186,8 @@ WaitEventWaitHandle.WaitOne();
 
 ## Sending a message 
 
-Now it is time to send a message to the waiting consumer.![pub-sub-sending-message]({{ site.baseurl }}/images/pub-sub-sending-message-300x134.png) 
+Now it is time to send a message to the waiting consumer.
+![]({{ site.baseurl }}/images/pub-sub-sending-message-300x134.png) 
 
 ## Creating and sending the message 
 
