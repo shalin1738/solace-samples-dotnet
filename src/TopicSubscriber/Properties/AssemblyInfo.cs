@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("solace-samples-dotnet")]
+[assembly: AssemblyTitle("TopicSubscriber")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("solace-samples-dotnet")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCompany("Solace Systems")]
+[assembly: AssemblyProduct("Tutorial")]
+[assembly: AssemblyCopyright("Copyright © Solace Systems 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("4f069aad-f96e-49c3-b47e-d40972d5a43b")]
+[assembly: Guid("e79ca063-2d86-4c32-89b9-4110e2304be0")]
 
 // Version information for an assembly consists of the following four values:
 //
