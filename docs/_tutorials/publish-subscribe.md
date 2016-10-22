@@ -140,8 +140,7 @@ At this point your client is connected to the Solace message router. You can use
 
 ## Receiving a message 
 
-This tutorial uses “Direct” messages which are at most once delivery messages. So first, let’s express interest in the messages by subscribing to a Solace topic. Then you can look at publishing a matching message and see it received. 
-![pub-sub-receiving-message]({{ site.baseurl }}/images/pub-sub-receiving-message-300x134.png) 
+This tutorial uses “Direct” messages which are at most once delivery messages. So first, let’s express interest in the messages by subscribing to a Solace topic. Then you can look at publishing a matching message and see it received.![pub-sub-receiving-message]({{ site.baseurl }}/images/pub-sub-receiving-message-300x134.png) 
 
 With a session connected in the previous step, the next step is to create a message consumer. Message consumers enable the asynchronous receipt of messages through callbacks. These callbacks are defined in CSCSMP by the message receive delegate.
 
@@ -185,8 +184,7 @@ WaitEventWaitHandle.WaitOne();
 
 ## Sending a message 
 
-Now it is time to send a message to the waiting consumer. 
-![pub-sub-sending-message]({{ site.baseurl }}/images/pub-sub-sending-message-300x134.png) 
+Now it is time to send a message to the waiting consumer.![pub-sub-sending-message]({{ site.baseurl }}/images/pub-sub-sending-message-300x134.png) 
 
 ## Creating and sending the message 
 
